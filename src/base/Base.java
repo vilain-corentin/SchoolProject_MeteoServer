@@ -30,8 +30,8 @@ public class Base {
 	}
 
 
-	public String ouvrir() {
-		String res = "";
+	public boolean ouvrir() {
+		boolean res = false;
 		try {
 			ResourceBundle rs = ResourceBundle.getBundle(config);
 			url = rs.getString("url");
@@ -41,10 +41,10 @@ public class Base {
 			System.out.println("user = "+user);
 
 			co = DriverManager.getConnection(url, user, password);
-			res = "Connexion Reussie";
+			res = true;
 		}
 		catch (Exception e) {
-			res = "Erreur Base.ouvrir "+e.getMessage();
+			System.out.println("Erreur Base.ouvrir "+e.getMessage());
 		}
 
 		return res;
