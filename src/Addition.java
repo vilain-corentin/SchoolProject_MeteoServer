@@ -1,13 +1,18 @@
+
+
 import java.rmi.*;
 import java.rmi.server.*;
+
+import base.Base;
  
 public class Addition extends UnicastRemoteObject
          implements AdditionInterface {
 
 	public Addition () throws RemoteException {   }
  
-      public int add(int a, int b) throws RemoteException {
-    	  int result=a+b;
-    	  return result;
+	public Base base = new Base();
+	
+      public String log() throws RemoteException {
+    	  return base.ouvrir();
       }
  }
