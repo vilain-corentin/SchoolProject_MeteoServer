@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 
@@ -76,6 +77,7 @@ public class Base {
 
 			PreparedStatement ps = co.prepareStatement(sql);
 			ResultSet rs = ps.executeQuery();
+
 			while (rs.next()) {
 				vent.setIdVent(rs.getInt("idVent"));
 				vent.setDirection(rs.getString("direction"));
@@ -117,25 +119,27 @@ public class Base {
 
 		return met;
 	}
-	
-	public ArrayList<Meteo> getMeteoByMonth(int y, int m){
-		
+
+	public ArrayList<Meteo> getMeteoByMonth(int y, int m) {
+
 		ArrayList<Meteo> tabMeteo = new ArrayList<>();
-		
+
 		try {
-			
-			String sql = "SELECT * from meteo mt inner join donnee don on mt.idDonnee = don.idDonnee inner join vent ve on don.idVent = ve.idVent where (MONTH(mt.dateMeteo) = "+m+" and YEAR(mt.dateMeteo) = "+y+")";
-			
+
+			String sql = "SELECT * from meteo mt inner join donnee don on mt.idDonnee = don.idDonnee inner join vent ve on don.idVent = ve.idVent where (MONTH(mt.dateMeteo) = "
+					+ m + " and YEAR(mt.dateMeteo) = " + y + ")";
+
 			PreparedStatement ps = co.prepareStatement(sql);
 			ResultSet rs = ps.executeQuery();
 			ResultSet rsPhoto;
-			
-			//TODO: Refactoring : Faire des fonctions de remplissage pour le vent, donnee, etc... car copié collé du haut !
-			while(rs.next()) {
+
+			// TODO: Refactoring : Faire des fonctions de remplissage pour le vent, donnee,
+			// etc... car copié collé du haut !
+			while (rs.next()) {
 				Meteo met = new Meteo();
 				DonneeMeteo donnees = new DonneeMeteo();
 				Vent vent = new Vent();
-				
+
 				vent.setIdVent(rs.getInt("idVent"));
 				vent.setDirection(rs.getString("direction"));
 				vent.setVitesse(rs.getFloat("vitesse"));
@@ -150,13 +154,13 @@ public class Base {
 				met.setIdMeteo(rs.getInt("idMeteo"));
 				met.setDate(rs.getDate("dateMeteo"));
 				met.setLieu(rs.getString("lieuMeteo"));
-				
+
 				sql = "SELECT * from liasonphoto li INNER JOIN photo ph on li.idPhoto = ph.idPhoto where li.idMeteo = "
 						+ met.getIdMeteo();
 
 				ps = co.prepareStatement(sql);
 				rsPhoto = ps.executeQuery();
-				
+
 				while (rsPhoto.next()) {
 					Blob blobImg;
 					Photo photo = new Photo();
@@ -167,40 +171,209 @@ public class Base {
 				}
 
 				met.setDonnees(donnees);
-				
+
 				tabMeteo.add(met);
 			}
-			
+
 		} catch (Exception e) {
 			System.out.println("Erreur : " + e.getMessage());
 		}
-		
+
 		return tabMeteo;
 	}
 
-	/*
-	 * public int enregistrerLivre(Livre l) { int res = 0;
-	 * 
-	 * try { String sql = "insert into t_livre (titre, auteur, annee)"+
-	 * "values (?, ?, ?) "; PreparedStatement ps = co.prepareStatement(sql);
-	 * ps.setString(1, l.getTitre()); ps.setString(2, l.getAuteur()); ps.setInt(3,
-	 * l.getAnnee()); res = ps.executeUpdate();
-	 * System.out.println("Exec sql : "+sql); } catch (Exception e) {
-	 * System.out.println("Erreur Base.enregistrerLivre "+e.getMessage()); } return
-	 * res; }
-	 */
+	public boolean resquestAuth(String user, String pass) {
+		String sql = "SELECT * FROM `users` WHERE login = '" + user + "' and pass = '" + pass + "'";
+		System.out.println(sql);
+		PreparedStatement ps;
+		try {
 
-	/*
-	 * public ArrayList<Livre> listerLivres() { ArrayList<Livre> lst =
-	 * newArrayList<>(); try { String sql = "select * from t_livre";
-	 * PreparedStatement ps = co.prepareStatement(sql); ResultSet rs =
-	 * ps.executeQuery(); while (rs.next()) { Livre l = new Livre();
-	 * l.setTitre(rs.getString("titre")); l.setAuteur(rs.getString("auteur"));
-	 * l.setAnnee(rs.getInt("annee")); lst.add(l); }
-	 * System.out.println("Exec sql : "+sql);
-	 * 
-	 * } catch (Exception e) {
-	 * System.out.println("Erreur Base.listerLivres "+e.getMessage()); } return lst;
-	 * }
-	 */
+			ps = co.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+
+			if (rs.next()) {
+				return true;
+			}
+
+		} catch (SQLException e) {
+			System.out.println("Erreur : " + e.getMessage());
+		}
+
+		return false;
+
+	}
+
+	public boolean addMeteo(Meteo meteo) {
+
+		int nbLine = 0;
+		int verifNbLine = 0;
+		PreparedStatement ps;
+
+		String sqlVent = "insert into vent (direction, vitesse) values (? ,?)";
+		String sqlDonnee = "insert into donnee (precipitation, typePrecipitation, temperature, ensoleilement, idVent) values (?, ?, ?, ?, ?)";
+		String sqlMeteo = "insert into meteo (dateMeteo, lieuMeteo, idDonnee) values (?, ?, ?)";
+		String sqlPhoto = "insert into photo (chemin) values (?)";
+		String sqlLiasionPhoto = "insert into liasonphoto (idMeteo, idPhoto) values (?, ?)";
+
+		try {
+			// vent
+			ps = co.prepareStatement(sqlVent);
+			ps.setString(1, meteo.getDonnees().getVent().getDirection());
+			ps.setFloat(2, meteo.getDonnees().getVent().getVitesse());
+			nbLine += ps.executeUpdate();
+			verifNbLine++;
+
+			// donnee
+			ps = co.prepareStatement(sqlDonnee);
+			ps.setFloat(1, meteo.getDonnees().getPrecipitation());
+			ps.setString(2, meteo.getDonnees().getTypePrecipitation());
+			ps.setFloat(3, meteo.getDonnees().getTemperature());
+			ps.setFloat(4, meteo.getDonnees().getEnsoleilement());
+			ps.setInt(5, getLastVent());
+			nbLine += ps.executeUpdate();
+			verifNbLine++;
+			
+			// meteo
+			ps = co.prepareStatement(sqlMeteo);
+			ps.setDate(1, meteo.getDate());
+			ps.setString(2, meteo.getLieu());
+			ps.setInt(3, getLastDonnee());
+			nbLine += ps.executeUpdate();
+			verifNbLine++;
+			
+			// photo
+			if (!meteo.getDonnees().photos.isEmpty()) {
+				for (Photo photo : meteo.getDonnees().photos) {
+					ps = co.prepareStatement(sqlPhoto);
+					ps.setBlob(1, new javax.sql.rowset.serial.SerialBlob(photo.getImg()));
+					nbLine += ps.executeUpdate();
+					verifNbLine++;
+					
+					ps = co.prepareStatement(sqlLiasionPhoto);
+					ps.setInt(1, getLastMeteo());
+					ps.setInt(2, getLastPhoto());
+					nbLine += ps.executeUpdate();
+					verifNbLine++;
+				}
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		if(nbLine > 0 && (nbLine == verifNbLine)) {
+			return true;
+		}else {
+			return false;
+		}
+	}
+
+	private int getLastVent() {
+		String sql = "SELECT * FROM `vent` order by idVent DESC limit 1";
+		int lastid = 0;
+
+		try {
+			PreparedStatement ps = co.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+				lastid = rs.getInt("idVent");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return lastid;
+	}
+
+	private int getLastDonnee() {
+		String sql = "SELECT * FROM `donnee` order by idDonnee DESC limit 1";
+		int lastid = 0;
+
+		try {
+			PreparedStatement ps = co.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+				lastid = rs.getInt("idDonnee");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return lastid;
+	}
+
+	private int getLastLiasonPhoto() {
+		String sql = "SELECT * FROM `liasonphoto` order by idLiason DESC limit 1";
+		int lastid = 0;
+
+		try {
+			PreparedStatement ps = co.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+				lastid = rs.getInt("idLiason");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return lastid;
+	}
+
+	private int getLastMeteo() {
+		String sql = "SELECT * FROM `meteo` order by idMeteo DESC limit 1";
+		int lastid = 0;
+
+		try {
+			PreparedStatement ps = co.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+				lastid = rs.getInt("idMeteo");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return lastid;
+	}
+
+	private int getLastPhoto() {
+		String sql = "SELECT * FROM `photo` order by idPhoto DESC limit 1";
+		int lastid = 0;
+
+		try {
+			PreparedStatement ps = co.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+				lastid = rs.getInt("idPhoto");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return lastid;
+	}
+
+	private int getLastUser() {
+		String sql = "SELECT * FROM `users` order by idUser DESC limit 1";
+		int lastid = 0;
+
+		try {
+			PreparedStatement ps = co.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+				lastid = rs.getInt("idUser");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return lastid;
+	}
+
 }

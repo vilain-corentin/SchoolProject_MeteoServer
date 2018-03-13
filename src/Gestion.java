@@ -27,8 +27,7 @@ public class Gestion extends UnicastRemoteObject implements GestionInterface {
 
 	@Override
 	public Boolean authentification(String user, String pass) {
-		// TODO Auto-generated method stub
-		return null;
+		return base.resquestAuth(user, pass);
 	}
 
 	@Override
@@ -39,8 +38,7 @@ public class Gestion extends UnicastRemoteObject implements GestionInterface {
 
 	@Override
 	public Boolean addMeteo(Meteo meteo) {
-		// TODO Auto-generated method stub
-		return null;
+		return base.addMeteo(meteo);
 	}
 
 	@Override

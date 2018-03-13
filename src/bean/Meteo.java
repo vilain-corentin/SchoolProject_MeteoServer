@@ -22,8 +22,8 @@ public class Meteo implements Serializable{
 		return date;
 	}
 
-	public void setDate(Date date2) {
-		this.date = date2;
+	public void setDate(Date d) {
+		this.date = d;
 	}
 
 	public String getLieu() {

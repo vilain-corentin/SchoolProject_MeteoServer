@@ -1,22 +1,81 @@
 
 import java.rmi.*;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Random;
 
+import bean.DonneeMeteo;
 import bean.Meteo;
+import bean.Photo;
+import bean.Vent;
 
 public class GestionClient {
 	public static void main(String[] args) {
 		GestionInterface gestion;
 		try {
 			gestion = (GestionInterface) Naming.lookup("rmi://localhost/server");
-			
-			if(gestion.initCo()) {
-				//Meteo result = gestion.MeteoByDay(2018, 3, 12);
-				//System.out.println(result.toString());
+
+			if (gestion.initCo()) {
+				// Meteo result = gestion.meteoByDay(2018, 3, 12);
+				// System.out.println(result.toString());
+
+				// ArrayList<Meteo> result = gestion.meteoByMonth(2018, 3);
+				// System.out.println(result.toString());
+
+				/*
+				 * boolean resul = gestion.authentification("jean", "paul");
+				 * System.out.println(resul); if(resul) {
+				 * System.out.println("Connexion autorisée"); }else {
+				 * System.out.println("Connexion refusée"); }
+				 */
+
+				Date d = new Date(2018,5,20);
+
+				Vent vent = new Vent();
+				vent.setDirection("NORD-SUD");
+				vent.setVitesse(200);
+
+				// create random object
+				Random randomno = new Random();
+
+				// create byte array
+				byte[] nbyte = new byte[30];
+				byte[] nbyte2 = new byte[30];
+
+				// put the next byte in the array
+				randomno.nextBytes(nbyte);
+				randomno.nextBytes(nbyte2);
+
+				Photo photo1 = new Photo();
+				photo1.setImg(nbyte);
 				
-				ArrayList<Meteo> result = gestion.meteoByMonth(2018, 3);
-				System.out.println(result.toString());	
-			}else {
+				Photo photo2 = new Photo();
+				photo2.setImg(nbyte2);
+
+				DonneeMeteo donnee = new DonneeMeteo();
+				donnee.setEnsoleilement(70);
+				donnee.setPrecipitation(0);
+				donnee.setTemperature(-9);
+				donnee.setTypePrecipitation("NONE");
+				donnee.setVent(vent);
+				donnee.addPhoto(photo1);
+				donnee.addPhoto(photo2);
+
+				Meteo meteo = new Meteo();
+				meteo.setDate(d);
+				meteo.setLieu("BREST");
+				meteo.setDonnees(donnee);
+
+				boolean result = gestion.addMeteo(meteo);
+				
+				if(result) {
+					System.out.println("Meteo ajouté avec succes");
+				}else {
+					System.out.println("Erreur pour l'entree dans la base");
+				}
+				
+			} else {
 				System.out.println("La connexion à la base de donnée est un echec");
 			}
 
