@@ -6,18 +6,18 @@ import bean.Meteo;
 
 public interface GestionInterface extends Remote {
 
-	public Boolean initCo() throws RemoteException;
+	public Boolean initCo() throws RemoteException; //ok
 
-	public Meteo MeteoByDay(int y, int m, int d) throws RemoteException;
+	public Meteo meteoByDay(int y, int m, int d) throws RemoteException; //ok
 	
-	public ArrayList<Meteo> MeteoByMonth(int y, int d) throws RemoteException;
+	public ArrayList<Meteo> meteoByMonth(int y, int m) throws RemoteException;
 	
-	public Boolean Authentification(String user, String pass);
+	public Boolean authentification(String user, String pass) throws RemoteException;
 	
-	public Boolean ModMeteo(Meteo meteo);
+	public Boolean modMeteo(Meteo meteo) throws RemoteException;
 	
-	public Boolean AddMeteo(Meteo meteo);
+	public Boolean addMeteo(Meteo meteo) throws RemoteException;
 	
-	public Boolean AddGroupMeteo(ArrayList<Meteo> groupMeteo);
+	public Boolean addGroupMeteo(ArrayList<Meteo> groupMeteo) throws RemoteException;
 
 }

@@ -1,13 +1,16 @@
 package base;
 
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 import bean.DonneeMeteo;
 import bean.Meteo;
+import bean.Photo;
 import bean.Vent;
 
 public class Base {
@@ -88,17 +91,92 @@ public class Base {
 				met.setIdMeteo(rs.getInt("idMeteo"));
 				met.setDate(rs.getDate("dateMeteo"));
 				met.setLieu(rs.getString("lieuMeteo"));
-				met.setDonnees(donnees);
 
 			}
-			System.out.println("Exec sql : " + sql);
+
+			sql = "SELECT * from liasonphoto li INNER JOIN photo ph on li.idPhoto = ph.idPhoto where li.idMeteo = "
+					+ met.getIdMeteo();
+
+			ps = co.prepareStatement(sql);
+			rs = ps.executeQuery();
+
+			while (rs.next()) {
+				Blob blobImg;
+				Photo photo = new Photo();
+				photo.setIdPhoto(rs.getInt("idPhoto"));
+				blobImg = rs.getBlob("chemin");
+				photo.setImg(blobImg.getBytes(1, (int) blobImg.length()));
+				donnees.addPhoto(photo);
+			}
+
+			met.setDonnees(donnees);
 
 		} catch (Exception e) {
-			System.out.println("Erreur " + e.getMessage());
+			System.out.println("Erreur : " + e.getMessage());
 		}
+
 		return met;
 	}
+	
+	public ArrayList<Meteo> getMeteoByMonth(int y, int m){
+		
+		ArrayList<Meteo> tabMeteo = new ArrayList<>();
+		
+		try {
+			
+			String sql = "SELECT * from meteo mt inner join donnee don on mt.idDonnee = don.idDonnee inner join vent ve on don.idVent = ve.idVent where (MONTH(mt.dateMeteo) = "+m+" and YEAR(mt.dateMeteo) = "+y+")";
+			
+			PreparedStatement ps = co.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+			ResultSet rsPhoto;
+			
+			//TODO: Refactoring : Faire des fonctions de remplissage pour le vent, donnee, etc... car copié collé du haut !
+			while(rs.next()) {
+				Meteo met = new Meteo();
+				DonneeMeteo donnees = new DonneeMeteo();
+				Vent vent = new Vent();
+				
+				vent.setIdVent(rs.getInt("idVent"));
+				vent.setDirection(rs.getString("direction"));
+				vent.setVitesse(rs.getFloat("vitesse"));
 
+				donnees.setIdDonnee(rs.getInt("idDonnee"));
+				donnees.setPrecipitation(rs.getFloat("precipitation"));
+				donnees.setTypePrecipitation(rs.getString("typePrecipitation"));
+				donnees.setTemperature(rs.getFloat("temperature"));
+				donnees.setEnsoleilement(rs.getFloat("ensoleilement"));
+				donnees.setVent(vent);
+
+				met.setIdMeteo(rs.getInt("idMeteo"));
+				met.setDate(rs.getDate("dateMeteo"));
+				met.setLieu(rs.getString("lieuMeteo"));
+				
+				sql = "SELECT * from liasonphoto li INNER JOIN photo ph on li.idPhoto = ph.idPhoto where li.idMeteo = "
+						+ met.getIdMeteo();
+
+				ps = co.prepareStatement(sql);
+				rsPhoto = ps.executeQuery();
+				
+				while (rsPhoto.next()) {
+					Blob blobImg;
+					Photo photo = new Photo();
+					photo.setIdPhoto(rsPhoto.getInt("idPhoto"));
+					blobImg = rsPhoto.getBlob("chemin");
+					photo.setImg(blobImg.getBytes(1, (int) blobImg.length()));
+					donnees.addPhoto(photo);
+				}
+
+				met.setDonnees(donnees);
+				
+				tabMeteo.add(met);
+			}
+			
+		} catch (Exception e) {
+			System.out.println("Erreur : " + e.getMessage());
+		}
+		
+		return tabMeteo;
+	}
 
 	/*
 	 * public int enregistrerLivre(Livre l) { int res = 0;
@@ -112,24 +190,17 @@ public class Base {
 	 * res; }
 	 */
 
-/*
-	public ArrayList<Livre> listerLivres() { 
-		ArrayList<Livre> lst = newArrayList<>();
-		try { String sql = "select * from t_livre";
-		PreparedStatement
-	  ps = co.prepareStatement(sql); 
-		ResultSet rs = ps.executeQuery(); while
-	  (rs.next()) {
-			Livre l = new Livre(); 
-	  l.setTitre(rs.getString("titre"));
-	  l.setAuteur(rs.getString("auteur"));
-	  l.setAnnee(rs.getInt("annee"));
-	  lst.add(l); 
-	  } 
-		System.out.println("Exec sql : "+sql);
-	  
-	 } catch (Exception e) {
-	 System.out.println("Erreur Base.listerLivres "+e.getMessage()); } return lst;
-	 }
-*/
+	/*
+	 * public ArrayList<Livre> listerLivres() { ArrayList<Livre> lst =
+	 * newArrayList<>(); try { String sql = "select * from t_livre";
+	 * PreparedStatement ps = co.prepareStatement(sql); ResultSet rs =
+	 * ps.executeQuery(); while (rs.next()) { Livre l = new Livre();
+	 * l.setTitre(rs.getString("titre")); l.setAuteur(rs.getString("auteur"));
+	 * l.setAnnee(rs.getInt("annee")); lst.add(l); }
+	 * System.out.println("Exec sql : "+sql);
+	 * 
+	 * } catch (Exception e) {
+	 * System.out.println("Erreur Base.listerLivres "+e.getMessage()); } return lst;
+	 * }
+	 */
 }

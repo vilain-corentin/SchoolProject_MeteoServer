@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class Photo implements Serializable{
 
 	public int idPhoto;
-	public String chemin;
+	public byte[] image;
 
 	public int getIdPhoto() {
 		return idPhoto;
@@ -13,14 +13,14 @@ public class Photo implements Serializable{
 
 	public void setIdPhoto(int idPhoto) {
 		this.idPhoto = idPhoto;
+	} 
+
+	public byte[] getImg() {
+		return image;
 	}
 
-	public String getChemin() {
-		return chemin;
-	}
-
-	public void setChemin(String chemin) {
-		this.chemin = chemin;
+	public void setImg(byte[] image) {
+		this.image = image;
 	}
 
 }

@@ -44,7 +44,6 @@ public class Meteo implements Serializable{
 	
 	public String toString() {
 		String resultat = "Donnée Météo pour le " + this.getDate().toString() + " | Lieu : " + this.getLieu() + "\n";
-
 		return resultat;
 	}
 

@@ -13,7 +13,7 @@ public class DonneeMeteo implements Serializable{
 	public Vent vent;
 	public ArrayList<Photo> photos;
 	
-	public void initTabPhoto(int taille) {
+	public DonneeMeteo() {
 		this.photos = new ArrayList<>();
 	}
 	
