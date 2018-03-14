@@ -210,6 +210,24 @@ public class Base {
 		int nbLine = 0;
 		int verifNbLine = 0;
 		PreparedStatement ps;
+		ResultSet rs;
+
+		String sqlAntiDoublon = "SELECT * from meteo mt inner join donnee don on mt.idDonnee = don.idDonnee inner join vent ve on don.idVent = ve.idVent where mt.dateMeteo = '"
+				+ meteo.getDate().toString()
+				+ "' and lieuMeteo = '" + meteo.getLieu() + "'";
+		
+		try {
+			ps = co.prepareStatement(sqlAntiDoublon);
+			rs = ps.executeQuery();
+			
+			while(rs.next()) {
+				return false;
+			}
+			
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 		String sqlVent = "insert into vent (direction, vitesse) values (? ,?)";
 		String sqlDonnee = "insert into donnee (precipitation, typePrecipitation, temperature, ensoleilement, idVent) values (?, ?, ?, ?, ?)";
@@ -283,11 +301,11 @@ public class Base {
 		return verif;
 
 	}
-	
+
 	public boolean modMeteo(Meteo meteo) {
-		if(this.eraseMeteo(meteo) && this.addMeteo(meteo)) {
+		if (this.eraseMeteo(meteo) && this.addMeteo(meteo)) {
 			return true;
-		}else {
+		} else {
 			return false;
 		}
 	}
@@ -314,7 +332,7 @@ public class Base {
 		String sqlVent = "delete from vent where idVent = " + meteo.getDonnees().getVent().getIdVent();
 		String sqlDonnee = "delete from donnee where idDonnee = " + meteo.getDonnees().getIdDonnee();
 		String sqlMeteo = "delete from meteo where idMeteo = " + meteo.getIdMeteo();
-		
+
 		try {
 			ps = co.prepareStatement(sqlVent);
 			nbLine += ps.executeUpdate();
@@ -328,7 +346,7 @@ public class Base {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		if (nbLine > 0 && (nbLine == verifNbLine)) {
 			return true;
 		} else {

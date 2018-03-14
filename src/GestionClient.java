@@ -21,10 +21,10 @@ public class GestionClient {
 			gestion = (GestionInterface) Naming.lookup("rmi://localhost/server");
 
 			if (gestion.initCo()) {
-				ArrayList<Meteo> resultTab = gestion.meteoByDay(2018, 12, 24);
-				System.out.println(resultTab.toString());
+				//ArrayList<Meteo> resultTab = gestion.meteoByDay(2018, 12, 24);
+				//System.out.println(resultTab.toString());
 				
-				Meteo resultat = resultTab.get(0);
+				/*Meteo resultat = resultTab.get(0);
 				
 				resultat.getDonnees().setTemperature(9999);
 				resultat.setLieu("LIEU-TEST");
@@ -35,7 +35,7 @@ public class GestionClient {
 					System.out.println("Meteo modifiée avec succes");
 				} else {
 					System.out.println("Erreur pour l'entree dans la base");
-				}
+				}*/
 
 				// ArrayList<Meteo> result = gestion.meteoByMonth(2018, 3);
 				// System.out.println(result.toString());
@@ -47,7 +47,7 @@ public class GestionClient {
 				 * System.out.println("Connexion refusée"); }
 				 */
 
-				/*
+				
 				ArrayList<Meteo> tabMeteo = new ArrayList<>();
 				
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -111,8 +111,6 @@ public class GestionClient {
 
 				tabMeteo.add(meteo);
 				
-				
-				
 				boolean result = gestion.addMeteo(meteo);
 
 				if (result) {
@@ -122,14 +120,14 @@ public class GestionClient {
 				}
 				
 				
-				boolean result = gestion.addGroupMeteo(tabMeteo);
+				boolean result1 = gestion.addGroupMeteo(tabMeteo);
 
-				if (result) {
+				if (result1) {
 					System.out.println("Meteos ajoutés avec succes");
 				} else {
 					System.out.println("Erreur pour l'entree dans la base");
 				}
-				*/
+				
 
 			} else {
 				System.out.println("La connexion à la base de donnée est un echec");
