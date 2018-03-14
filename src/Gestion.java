@@ -16,7 +16,7 @@ public class Gestion extends UnicastRemoteObject implements GestionInterface {
 		return base.ouvrir();
 	}
 
-	public Meteo meteoByDay(int y, int m, int d) throws RemoteException {
+	public ArrayList<Meteo> meteoByDay(int y, int m, int d) throws RemoteException {
 		return base.getMeteoForOneDay(y, m, d);
 	}
 
@@ -32,8 +32,7 @@ public class Gestion extends UnicastRemoteObject implements GestionInterface {
 
 	@Override
 	public Boolean modMeteo(Meteo meteo) {
-		// TODO Auto-generated method stub
-		return null;
+		return base.modMeteo(meteo);
 	}
 
 	@Override
@@ -43,8 +42,7 @@ public class Gestion extends UnicastRemoteObject implements GestionInterface {
 
 	@Override
 	public Boolean addGroupMeteo(ArrayList<Meteo> groupMeteo) {
-		// TODO Auto-generated method stub
-		return null;
+		return base.addMeteoGroup(groupMeteo);
 	}
 
 }

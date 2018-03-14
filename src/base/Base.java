@@ -64,13 +64,11 @@ public class Base {
 			}
 	}
 
-	public Meteo getMeteoForOneDay(int y, int m, int d) {
+	public ArrayList<Meteo> getMeteoForOneDay(int y, int m, int d) {
 
-		Meteo met = new Meteo();
+		ArrayList<Meteo> tabMeteo = new ArrayList<>();
 
 		try {
-			DonneeMeteo donnees = new DonneeMeteo();
-			Vent vent = new Vent();
 
 			String sql = "SELECT * from meteo mt inner join donnee don on mt.idDonnee = don.idDonnee inner join vent ve on don.idVent = ve.idVent where mt.dateMeteo = '"
 					+ y + "-" + m + "-" + d + "' ";
@@ -79,6 +77,10 @@ public class Base {
 			ResultSet rs = ps.executeQuery();
 
 			while (rs.next()) {
+				Meteo met = new Meteo();
+				DonneeMeteo donnees = new DonneeMeteo();
+				Vent vent = new Vent();
+
 				vent.setIdVent(rs.getInt("idVent"));
 				vent.setDirection(rs.getString("direction"));
 				vent.setVitesse(rs.getFloat("vitesse"));
@@ -94,30 +96,30 @@ public class Base {
 				met.setDate(rs.getDate("dateMeteo"));
 				met.setLieu(rs.getString("lieuMeteo"));
 
+				sql = "SELECT * from liasonphoto li INNER JOIN photo ph on li.idPhoto = ph.idPhoto where li.idMeteo = "
+						+ met.getIdMeteo();
+
+				ps = co.prepareStatement(sql);
+				ResultSet rs2 = ps.executeQuery();
+
+				while (rs2.next()) {
+					Blob blobImg;
+					Photo photo = new Photo();
+					photo.setIdPhoto(rs2.getInt("idPhoto"));
+					blobImg = rs2.getBlob("chemin");
+					photo.setImg(blobImg.getBytes(1, (int) blobImg.length()));
+					donnees.addPhoto(photo);
+				}
+
+				met.setDonnees(donnees);
+				tabMeteo.add(met);
 			}
-
-			sql = "SELECT * from liasonphoto li INNER JOIN photo ph on li.idPhoto = ph.idPhoto where li.idMeteo = "
-					+ met.getIdMeteo();
-
-			ps = co.prepareStatement(sql);
-			rs = ps.executeQuery();
-
-			while (rs.next()) {
-				Blob blobImg;
-				Photo photo = new Photo();
-				photo.setIdPhoto(rs.getInt("idPhoto"));
-				blobImg = rs.getBlob("chemin");
-				photo.setImg(blobImg.getBytes(1, (int) blobImg.length()));
-				donnees.addPhoto(photo);
-			}
-
-			met.setDonnees(donnees);
 
 		} catch (Exception e) {
 			System.out.println("Erreur : " + e.getMessage());
 		}
 
-		return met;
+		return tabMeteo;
 	}
 
 	public ArrayList<Meteo> getMeteoByMonth(int y, int m) {
@@ -232,7 +234,7 @@ public class Base {
 			ps.setInt(5, getLastVent());
 			nbLine += ps.executeUpdate();
 			verifNbLine++;
-			
+
 			// meteo
 			ps = co.prepareStatement(sqlMeteo);
 			ps.setDate(1, meteo.getDate());
@@ -240,7 +242,7 @@ public class Base {
 			ps.setInt(3, getLastDonnee());
 			nbLine += ps.executeUpdate();
 			verifNbLine++;
-			
+
 			// photo
 			if (!meteo.getDonnees().photos.isEmpty()) {
 				for (Photo photo : meteo.getDonnees().photos) {
@@ -248,7 +250,7 @@ public class Base {
 					ps.setBlob(1, new javax.sql.rowset.serial.SerialBlob(photo.getImg()));
 					nbLine += ps.executeUpdate();
 					verifNbLine++;
-					
+
 					ps = co.prepareStatement(sqlLiasionPhoto);
 					ps.setInt(1, getLastMeteo());
 					ps.setInt(2, getLastPhoto());
@@ -260,12 +262,79 @@ public class Base {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
-		if(nbLine > 0 && (nbLine == verifNbLine)) {
+
+		if (nbLine > 0 && (nbLine == verifNbLine)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public boolean addMeteoGroup(ArrayList<Meteo> tabMeteo) {
+
+		boolean verif = true;
+
+		for (Meteo meteo : tabMeteo) {
+			if (!this.addMeteo(meteo)) {
+				verif = false;
+			}
+		}
+
+		return verif;
+
+	}
+	
+	public boolean modMeteo(Meteo meteo) {
+		if(this.eraseMeteo(meteo) && this.addMeteo(meteo)) {
 			return true;
 		}else {
 			return false;
 		}
+	}
+
+	private boolean eraseMeteo(Meteo meteo) {
+
+		PreparedStatement ps;
+		int nbLine = 0;
+		int verifNbLine = 0;
+
+		for (Photo photo : meteo.getDonnees().photos) {
+			try {
+				ps = co.prepareStatement("delete from photo where idPhoto = " + photo.getIdPhoto());
+				nbLine += ps.executeUpdate();
+				verifNbLine++;
+				ps = co.prepareStatement("delete from liasonphoto where idPhoto = " + photo.getIdPhoto());
+				nbLine += ps.executeUpdate();
+				verifNbLine++;
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+
+		String sqlVent = "delete from vent where idVent = " + meteo.getDonnees().getVent().getIdVent();
+		String sqlDonnee = "delete from donnee where idDonnee = " + meteo.getDonnees().getIdDonnee();
+		String sqlMeteo = "delete from meteo where idMeteo = " + meteo.getIdMeteo();
+		
+		try {
+			ps = co.prepareStatement(sqlVent);
+			nbLine += ps.executeUpdate();
+			verifNbLine++;
+			ps = co.prepareStatement(sqlDonnee);
+			nbLine += ps.executeUpdate();
+			verifNbLine++;
+			ps = co.prepareStatement(sqlMeteo);
+			nbLine += ps.executeUpdate();
+			verifNbLine++;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		if (nbLine > 0 && (nbLine == verifNbLine)) {
+			return true;
+		} else {
+			return false;
+		}
+
 	}
 
 	private int getLastVent() {

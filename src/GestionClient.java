@@ -2,7 +2,11 @@
 import java.rmi.*;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Random;
 
 import bean.DonneeMeteo;
@@ -17,8 +21,21 @@ public class GestionClient {
 			gestion = (GestionInterface) Naming.lookup("rmi://localhost/server");
 
 			if (gestion.initCo()) {
-				// Meteo result = gestion.meteoByDay(2018, 3, 12);
-				// System.out.println(result.toString());
+				ArrayList<Meteo> resultTab = gestion.meteoByDay(2018, 12, 24);
+				System.out.println(resultTab.toString());
+				
+				Meteo resultat = resultTab.get(0);
+				
+				resultat.getDonnees().setTemperature(9999);
+				resultat.setLieu("LIEU-TEST");
+				
+				boolean result = gestion.modMeteo(resultat);
+				
+				if (result) {
+					System.out.println("Meteo modifiée avec succes");
+				} else {
+					System.out.println("Erreur pour l'entree dans la base");
+				}
 
 				// ArrayList<Meteo> result = gestion.meteoByMonth(2018, 3);
 				// System.out.println(result.toString());
@@ -30,11 +47,16 @@ public class GestionClient {
 				 * System.out.println("Connexion refusée"); }
 				 */
 
-				Date d = new Date(2018,5,20);
+				/*
+				ArrayList<Meteo> tabMeteo = new ArrayList<>();
+				
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+				formatter = formatter.withLocale(Locale.FRANCE);
+				LocalDate d = LocalDate.parse("24/12/2018", formatter);
 
 				Vent vent = new Vent();
-				vent.setDirection("NORD-SUD");
-				vent.setVitesse(200);
+				vent.setDirection("OUEST-NORD");
+				vent.setVitesse(788);
 
 				// create random object
 				Random randomno = new Random();
@@ -49,32 +71,66 @@ public class GestionClient {
 
 				Photo photo1 = new Photo();
 				photo1.setImg(nbyte);
-				
+
 				Photo photo2 = new Photo();
 				photo2.setImg(nbyte2);
 
 				DonneeMeteo donnee = new DonneeMeteo();
-				donnee.setEnsoleilement(70);
+				donnee.setEnsoleilement(100);
 				donnee.setPrecipitation(0);
-				donnee.setTemperature(-9);
+				donnee.setTemperature(19);
 				donnee.setTypePrecipitation("NONE");
 				donnee.setVent(vent);
 				donnee.addPhoto(photo1);
 				donnee.addPhoto(photo2);
 
 				Meteo meteo = new Meteo();
-				meteo.setDate(d);
-				meteo.setLieu("BREST");
+				meteo.setDate(java.sql.Date.valueOf(d));
+				meteo.setLieu("RENNES");
 				meteo.setDonnees(donnee);
 
-				boolean result = gestion.addMeteo(meteo);
+				tabMeteo.add(meteo);
 				
-				if(result) {
+				d = LocalDate.parse("01/01/2018", formatter);
+
+				vent = new Vent();
+				vent.setDirection("SUD-SUD");
+				vent.setVitesse(300);
+
+				donnee = new DonneeMeteo();
+				donnee.setEnsoleilement(50);
+				donnee.setPrecipitation(1000);
+				donnee.setTemperature(45);
+				donnee.setTypePrecipitation("NONE");
+				donnee.setVent(vent);
+				
+				meteo = new Meteo();
+				meteo.setDate(java.sql.Date.valueOf(d));
+				meteo.setLieu("PARIS");
+				meteo.setDonnees(donnee);
+
+				tabMeteo.add(meteo);
+				
+				
+				
+				boolean result = gestion.addMeteo(meteo);
+
+				if (result) {
 					System.out.println("Meteo ajouté avec succes");
-				}else {
+				} else {
 					System.out.println("Erreur pour l'entree dans la base");
 				}
 				
+				
+				boolean result = gestion.addGroupMeteo(tabMeteo);
+
+				if (result) {
+					System.out.println("Meteos ajoutés avec succes");
+				} else {
+					System.out.println("Erreur pour l'entree dans la base");
+				}
+				*/
+
 			} else {
 				System.out.println("La connexion à la base de donnée est un echec");
 			}
