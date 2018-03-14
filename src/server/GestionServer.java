@@ -1,4 +1,6 @@
 
+package server;
+
 import java.rmi.*;
 
 public class GestionServer {
