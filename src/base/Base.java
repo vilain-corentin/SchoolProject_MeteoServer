@@ -1,5 +1,6 @@
 package base;
 
+import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -63,15 +64,34 @@ public class Base {
 			} catch (Exception e) {
 			}
 	}
+	
+	public InputStream getPhoto(int id) {
+		String sql = "SELECT * FROM `photo` WHERE idPhoto = " + id;
 
-	public ArrayList<Meteo> getMeteoForOneDay(int y, int m, int d) {
+		try {
+			PreparedStatement ps = co.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+			
+			while(rs.next()) {
+				return rs.getBinaryStream("chemin");
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+		
+	}
+
+	public ArrayList<Meteo> getMeteoForOneDay(int y, int m, int d, String lieu) {
 
 		ArrayList<Meteo> tabMeteo = new ArrayList<>();
 
 		try {
 
 			String sql = "SELECT * from meteo mt inner join donnee don on mt.idDonnee = don.idDonnee inner join vent ve on don.idVent = ve.idVent where mt.dateMeteo = '"
-					+ y + "-" + m + "-" + d + "' ";
+					+ y + "-" + m + "-" + d + "' and lieuMeteo = '" + lieu + "'";
 
 			PreparedStatement ps = co.prepareStatement(sql);
 			ResultSet rs = ps.executeQuery();
@@ -122,14 +142,14 @@ public class Base {
 		return tabMeteo;
 	}
 
-	public ArrayList<Meteo> getMeteoByMonth(int y, int m) {
+	public ArrayList<Meteo> getMeteoByMonth(int y, int m, String lieu) {
 
 		ArrayList<Meteo> tabMeteo = new ArrayList<>();
 
 		try {
 
 			String sql = "SELECT * from meteo mt inner join donnee don on mt.idDonnee = don.idDonnee inner join vent ve on don.idVent = ve.idVent where (MONTH(mt.dateMeteo) = "
-					+ m + " and YEAR(mt.dateMeteo) = " + y + ")";
+					+ m + " and YEAR(mt.dateMeteo) = " + y + ") and lieuMeteo = '" + lieu + "'";
 
 			PreparedStatement ps = co.prepareStatement(sql);
 			ResultSet rs = ps.executeQuery();

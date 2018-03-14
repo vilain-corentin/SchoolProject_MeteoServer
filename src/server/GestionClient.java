@@ -23,7 +23,7 @@ public class GestionClient {
 	public GestionClient() {
 
 		try {
-			this.gestion = (GestionInterface) Naming.lookup("rmi://localhost/server");
+			this.gestion = (GestionInterface) Naming.lookup("//localhost/server");
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (RemoteException e) {
