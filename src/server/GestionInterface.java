@@ -24,5 +24,7 @@ public interface GestionInterface extends Remote {
 	public Boolean modMeteo(Meteo meteo) throws RemoteException;
 	
 	public InputStream getPhoto(int id) throws RemoteException;
+	
+	public Boolean eraseMeteo(Meteo meteo) throws RemoteException;
 
 }

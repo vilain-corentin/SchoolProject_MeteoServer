@@ -330,7 +330,7 @@ public class Base {
 		}
 	}
 
-	private boolean eraseMeteo(Meteo meteo) {
+	public boolean eraseMeteo(Meteo meteo) {
 
 		PreparedStatement ps;
 		int nbLine = 0;

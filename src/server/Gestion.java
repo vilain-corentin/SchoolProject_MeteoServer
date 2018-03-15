@@ -53,4 +53,9 @@ public class Gestion extends UnicastRemoteObject implements GestionInterface {
 		return base.getPhoto(id);
 	}
 
+	@Override
+	public Boolean eraseMeteo(Meteo meteo) throws RemoteException {
+		return base.eraseMeteo(meteo);
+	}
+
 }
